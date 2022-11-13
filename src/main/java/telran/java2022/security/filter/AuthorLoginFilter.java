@@ -15,13 +15,12 @@ import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
 import telran.java2022.accounting.dao.UserAccountRepository;
-import telran.java2022.accounting.model.UserAccount;
 
 @Component
 @RequiredArgsConstructor
-@Order(20)
-public class AdminFilter implements Filter {
-	
+@Order(40)
+public class AuthorLoginFilter implements Filter {
+
 	final UserAccountRepository userAccountRepository;
 
 	@Override
@@ -30,18 +29,20 @@ public class AdminFilter implements Filter {
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) resp;
 		if (checkEndPoint(request.getMethod(), request.getServletPath())) {
-			UserAccount userAccount = userAccountRepository
-					.findById(request.getUserPrincipal().getName()).get();
-			if(!userAccount.getRoles().contains("Administrator".toUpperCase())) {
+			String[] arr = request.getServletPath().split("/");
+
+			if (request.getUserPrincipal().getName().compareTo(arr[arr.length - 1]) != 0) {
 				response.sendError(403);
 				return;
 			}
-		} 
+		}
 		chain.doFilter(request, response);
 	}
 
 	private boolean checkEndPoint(String method, String servletPath) {
-		return servletPath.matches("/account/user/\\w+/role/\\w+/?");
+		return (("POST".compareTo(method.toUpperCase()) == 0 && servletPath.matches("/forum/post/\\w+/?")) ||
+				("PUT".compareTo(method.toUpperCase()) == 0 && servletPath.matches("/forum/post/\\w+/comment/\\w+/?"))); 
+			
 	}
 
 }

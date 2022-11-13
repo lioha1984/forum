@@ -36,13 +36,13 @@ public class UserAccountController {
 	}
 
 	@DeleteMapping("/user/{login}")
-	public UserAccountResponseDto removeUser(@PathVariable String login) {
-		return accountService.removeUser(login);
+	public UserAccountResponseDto removeUser(Principal principal) {
+		return accountService.removeUser(principal.getName());
 	}
 
 	@PutMapping("/user/{login}")
-	public UserAccountResponseDto updateUser(@PathVariable String login, @RequestBody UserUpdateDto userUpdateDto) {
-		return accountService.editUser(login, userUpdateDto);
+	public UserAccountResponseDto updateUser(Principal principal, @RequestBody UserUpdateDto userUpdateDto) {
+		return accountService.editUser(principal.getName(), userUpdateDto);
 	}
 
 	@PutMapping("/user/{login}/role/{role}")

@@ -65,7 +65,8 @@ public class AuthenticationFilter implements Filter {
 	}
 
 	private boolean checkEndPoint(String method, String servletPath) {
-		return !("POST".equalsIgnoreCase(method) && servletPath.matches("/account/register/?"));
+		return !(("POST".equalsIgnoreCase(method) && servletPath.matches("/account/register/?")) ||
+				(method.toUpperCase().matches("POST|GET") && servletPath.matches("/forum/posts/?")));
 	}
 	
 	private class WrappedRequest extends HttpServletRequestWrapper {
