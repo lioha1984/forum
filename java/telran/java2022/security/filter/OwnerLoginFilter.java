@@ -1,6 +1,7 @@
 package telran.java2022.security.filter;
 
 import java.io.IOException;
+import java.security.Principal;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -13,34 +14,33 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import lombok.RequiredArgsConstructor;
-import telran.java2022.security.context.SecurityContext;
-import telran.java2022.security.context.User;
-
 @Component
-@RequiredArgsConstructor
-@Order(20)
-public class AdminFilter implements Filter {
-	
-	final SecurityContext context;
+@Order(30)
+public class OwnerLoginFilter implements Filter {
 
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
 			throws IOException, ServletException {
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) resp;
-		if (checkEndPoint(request.getMethod(), request.getServletPath())) {
-			User userAccount = context.getUser(request.getUserPrincipal().getName());
-			if(!userAccount.getRoles().contains("Administrator".toUpperCase())) {
+		String path = request.getServletPath();
+		if (checkEndPoints(request.getMethod(), request.getServletPath())) {
+			Principal principal = request.getUserPrincipal();
+			String[] arr = path.split("/");
+			String user = arr[arr.length - 1];
+			if (!user.equals(principal.getName())) {
 				response.sendError(403);
 				return;
 			}
 		}
 		chain.doFilter(request, response);
+
 	}
 
-	private boolean checkEndPoint(String method, String servletPath) {
-		return servletPath.matches("/account/user/\\w+/role/\\w+/?");
+	private boolean checkEndPoints(String method, String servletPath) {
+		return servletPath.matches("/account/user/\\w+/?") || servletPath.matches("/forum/post/\\w+/comment/\\w+/?")
+				|| (servletPath.matches("/forum/post/\\w+/?") && "Post".equalsIgnoreCase(method));
+
 	}
 
 }

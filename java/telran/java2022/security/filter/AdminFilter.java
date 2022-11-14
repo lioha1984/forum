@@ -14,14 +14,15 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
-import telran.java2022.accounting.dao.UserAccountRepository;
+import telran.java2022.security.context.SecurityContext;
+import telran.java2022.security.context.User;
 
 @Component
 @RequiredArgsConstructor
-@Order(40)
-public class AuthorLoginFilter implements Filter {
-
-	final UserAccountRepository userAccountRepository;
+@Order(20)
+public class AdminFilter implements Filter {
+	
+	final SecurityContext context;
 
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
@@ -29,9 +30,8 @@ public class AuthorLoginFilter implements Filter {
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) resp;
 		if (checkEndPoint(request.getMethod(), request.getServletPath())) {
-			String[] arr = request.getServletPath().split("/");
-
-			if (request.getUserPrincipal().getName().compareTo(arr[arr.length - 1]) != 0) {
+			User userAccount = context.getUser(request.getUserPrincipal().getName());
+			if(!userAccount.getRoles().contains("Administrator".toUpperCase())) {
 				response.sendError(403);
 				return;
 			}
@@ -40,9 +40,7 @@ public class AuthorLoginFilter implements Filter {
 	}
 
 	private boolean checkEndPoint(String method, String servletPath) {
-		return (("POST".compareTo(method.toUpperCase()) == 0 && servletPath.matches("/forum/post/\\w+/?")) ||
-				("PUT".compareTo(method.toUpperCase()) == 0 && servletPath.matches("/forum/post/\\w+/comment/\\w+/?"))); 
-			
+		return servletPath.matches("/account/user/\\w+/role/\\w+/?");
 	}
 
 }
