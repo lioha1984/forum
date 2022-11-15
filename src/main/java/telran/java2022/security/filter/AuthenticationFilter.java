@@ -39,41 +39,14 @@ public class AuthenticationFilter implements Filter {
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) resp;
 		if (checkEndPoint(request.getMethod(), request.getServletPath())) {
-//			String sessionId = request.getSession().getId();
-//			UserAccount userAccount = sessionService.getUser(sessionId);
-//			if (userAccount == null) {
-//				String token = request.getHeader("Authorization");
-//				if(token == null) {
-//					response.sendError(401);
-//					return;
-//				}
-//				String[] credentials;
-//				try {
-//					credentials = getCredentialsFromToken(token);
-//				} catch (Exception e) {
-//					response.sendError(401, "Invalid token");
-//					return;
-//				}
-//				userAccount = userAccountRepository.findById(credentials[0]).orElse(null);
-//				if(userAccount == null || !BCrypt.checkpw(credentials[1], userAccount.getPassword())) {
-//					response.sendError(401, "login or password is invalid");
-//					return;
-//				}
-//				sessionService.addUser(sessionId, userAccount);
-//			}
-			
-			String token = request.getHeader("Authorization");
 			String sessionId = request.getSession().getId();
 			UserAccount userAccount = sessionService.getUser(sessionId);
-			if(token == null && userAccount == null) {
-				response.sendError(401);
-				return;
-			}
-			
-			if(token != null) {
-				sessionService.removeUser(sessionId);
-				sessionId = request.changeSessionId();
-				
+			if (userAccount == null) {
+				String token = request.getHeader("Authorization");
+				if(token == null) {
+					response.sendError(401);
+					return;
+				}
 				String[] credentials;
 				try {
 					credentials = getCredentialsFromToken(token);
@@ -87,7 +60,7 @@ public class AuthenticationFilter implements Filter {
 					return;
 				}
 				sessionService.addUser(sessionId, userAccount);
-			};
+			}
 			
 			request = new WrappedRequest(request, userAccount.getLogin());
 			User user = User.builder()
